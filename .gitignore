@@ -1,0 +1,7 @@
+# music
+*.mp3
+sample_music
+
+
+# tempfiles
+.DS_Store
