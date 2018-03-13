@@ -10,7 +10,7 @@ from custom_knn import k_nearest_neighbors
 dataset = {'k': [[1, 2], [2, 3], [3, 1]], 'r': [[6, 5], [7, 7], [8, 6]]}
 new_features = [5, 7]
 
-result = k_nearest_neighbors(dataset, new_features, k=3)
+result, _ = k_nearest_neighbors(dataset, new_features, k=3)
 print(result)
 
 # plot the data
