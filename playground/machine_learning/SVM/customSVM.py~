@@ -1,0 +1,11 @@
+import numpy as np
+
+class SupportVectorMachine:
+    def __init__:
+        pass
+
+    ## Trains the SVM
+    ## Input:
+    ##     data = { 1: [[]], -1: [[]] }
+    def fit(self, data):
+        

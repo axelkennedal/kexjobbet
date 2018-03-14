@@ -1,0 +1,5 @@
+import pandas as pd
+
+df = pd.read_csv('../data/breast_cancer.data')
+df.replace('?', -9999, inplace=True)
+df.drop(['id'], 1, inplace=True)
