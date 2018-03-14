@@ -1,28 +1,29 @@
+from sklearn.svm import SVC
+from sklearn.model_selection import train_test_split
 import pandas as pd
-import SVM
 import numpy as np
 
-# df = pd.read_csv('../data/breast_cancer.data')
-# df.replace('?', -9999, inplace=True)
-# df.drop(['id'], 1, inplace=True)
-# fullData = df.astype(float).values.tolist()
+def test_SVM_cancer():
+    df = pd.read_csv("../test_data/breast-cancer-wisconsin.data")
 
-dataDict = { -1: np.array([[1, 7],
-                           [2, 8],
-                           [3, 8],]),
-             1: np.array([[5, 1],
-                          [6, -1],
-                          [7, 3],])}
+    # handle missing data in the dataset
+    df.replace('?', -99999, inplace=True)
 
+    # ignore ID column (comment this out when making predictions)
+    df.drop(['id'], 1, inplace=True)
 
+    # X is for features, Y for labels
+    X = np.array(df.drop(['class'], 1))
+    y = np.array(df['class'])
 
-svm = SVM.SVM()
-svm.fit(dataDict)
+    # cross validation - separate the data into training and test chunks
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
-svm.predict([2, 5])
-svm.predict([8, 5])
+    # define classifier
+    clf = SVC()
+    clf.fit(X_train, y_train)
 
-svm.visualize()
-
-
-
+    # test the classifier
+    accuracy = clf.score(X_test, y_test)
+    #print(accuracy)
+    return accuracy
