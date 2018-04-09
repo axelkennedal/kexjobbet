@@ -1,23 +1,24 @@
 import mutagen
 import librosa
+import numpy as np
 
 duration = 30
-offset = 20
+offset = 0
 nMfcc = 12
 sampleRate = 44100
 
 ## Extract the genre from the metadata of the specified file.
 ## Input:
-##		filename - name of the file to extract the data from.
+##        filename - name of the file to extract the data from.
 ## Output:
-##		string - file genre 
+##        string - file genre 
 def get_genre(filename):
-	genre = mutagen.File(filename)['TCON'].text[0]
+    genre = mutagen.File(filename)['TCON'].text[0]
 
-	## Changes Live Electronics to Electronic
-	genre = 'Electronic' if genre == 'Live Electronics' else genre
+    ## Changes Live Electronics to Electronic
+    genre = 'Electronic' if genre == 'Live Electronics' else genre
 
-	return genre
+    return genre
 
 ## Extract the feature vectors from the specified file. The mean 
 ## of each coefficient is used as a representation. 
@@ -26,15 +27,23 @@ def get_genre(filename):
 ## Output:
 ##      np.array(featureVector) - based on mfcc (normalized)
 def get_feature_vector(filename):
-	featureVector = []
-	fileData, sr = librosa.load(filename, sr = sampleRate, duration = duration, offset = offset)
+    featureVector = []
+    fileData, sr = librosa.load(filename, sr = sampleRate, duration = duration, offset = offset)
 
-	mfccs = librosa.feature.mfcc(fileData, sampleRate, n_mfcc = nMfcc) 
-	for mfcc in mfccs:
-		tmplist = list(mfcc)
-		featureVector.append(sum(tmplist) / len(tmplist))
+    ## We don't want to extract features from songs that are too short
+    ## this mess up the dimensions of the resulting feature matrix
+    if (len(fileData) != sr * duration):
+        return None
 
-	return featureVector
+    mfccs = librosa.feature.mfcc(fileData, sampleRate, n_mfcc = nMfcc) 
+
+    for freq in range(0, len(mfccs[0])):
+        featureVector.append(np.mean([mfccs[k][freq] for k in range(0, nMfcc)]))
+#    for mfcc in mfccs:
+#        tmplist = list(mfcc)
+#        featureVector.append(sum(tmplist) / len(tmplist))
+
+    return list(np.array(featureVector) / np.linalg.norm(featureVector))
 
 ## Extract the features and genre from the specified files.
 ## Input:
@@ -49,8 +58,11 @@ def extract_feature_and_class(filenames):
     trainingData = { 'data': [], 'group': [] }
 
     for filename in filenames:
-        featureVector = get_feature_vector(filename)
         fileGenre = get_genre(filename)
+        featureVector = get_feature_vector(filename)
+
+        if (featureVector == None):
+            continue
 
         ## Discard data where the dimension of the feature vector does not match the dimension
         ## of the other feature vectors.
