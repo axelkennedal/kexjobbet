@@ -3,7 +3,7 @@
 ####################################################
 
 import os
-from mp3_tagger import MP3File, VERSION_2
+import mutagen
 from collections import Counter
 from shutil import copyfile
 
@@ -18,9 +18,10 @@ for dirpath, dirnames, files in os.walk(fma_small_path):
     for name in files:
         if name.endswith(".mp3"):
             full_path = os.path.abspath(os.path.join(dirpath, name))
-            mp3 = MP3File(full_path)
-            mp3.set_version(VERSION_2)
-            genre = str(mp3.genre).replace("\x00", "")
+            mutagen_file = mutagen.File(full_path)
+            genre = ""
+            if "TCON" in mutagen_file:
+                genre = mutagen_file["TCON"].text[0]
             if not genre in genres:
                 genres.update({genre: []})
             genres[genre].append(str(full_path))
@@ -48,7 +49,9 @@ for genre in selected_genres:
 test_files = []
 training_files = []
 for genre in genres_subset:
-    split_index = round(len(genres_subset[genre]) * test_split)
+    print(genre)
+    split_index = int(round(len(genres_subset[genre]) * test_split))
+    print(split_index)
     test_files.extend(genres_subset[genre][:split_index])
     training_files.extend(genres_subset[genre][split_index:])
 
