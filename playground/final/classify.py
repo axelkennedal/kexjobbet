@@ -74,6 +74,7 @@ def print_help():
     print("    classify.py -h")
     print("    classify.py base_dir_path")
     print("    classify.py [OPTIONS]")
+    print("    classify.py [OPTIONS] base_dir_path")
     print("\nOPTIONS:")
     print("    -h                           - prints this help text.")
     print("    -d, --dir                    - data base directory")
@@ -92,6 +93,7 @@ def process_args():
     if len(args) > 1:
         print("Unknown argument!")
         sys.exit(1)
+
     elif len(args) == 1:
         path = args[0]
         if path[-1] != '/':
