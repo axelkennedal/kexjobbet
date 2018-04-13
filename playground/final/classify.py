@@ -3,7 +3,7 @@ import glob
 import sklearn.svm as svm
 import numpy as np
 
-dataBaseDir = '../../../data/'
+dataBaseDir = '../../../kexdata/shared/newSet/NNMD_out/'
 
 trainingData = { 'data': [], 'group': [] }
 songHashGenreName = {}
@@ -17,14 +17,14 @@ def main():
     data = np.array(trainingData['data'])
     group = np.array(trainingData['group'])
 
-    # np.savetxt('mfccdata.dat', data)
-    # np.savetxt('gdata.dat', group)
+    # np.savetxt('mfccdata.dat', data, fmt = '%f')
+    # np.savetxt('gdata.dat', group, fmt = '%d')
     # data = np.loadtxt('mfccdata.dat', dtype=float)
-    # group = np.loadtxt('gdata.dat', dtype=float)
+    # group = np.loadtxt('gdata.dat', dtype=int)
 
     print('\nTraining classifier...')
     # Generate classifier model
-    classifier = svm.SVC(kernel = 'rbf', gamma = 1, C = 50, tol = 0.00001)
+    classifier = svm.SVC(kernel = 'rbf', gamma = 1, C = 3, tol = 0.00001)
     classifier.fit(data, group)
     print('Score: %f' % classifier.score(data, group))
 
@@ -35,10 +35,10 @@ def main():
     predictGenre = np.array(predictDataDict['group'])
     predictData = np.array(predictDataDict['data'])
 
-    # np.savetxt('predData.dat', predictData)
-    # np.savetxt('predGroup.dat', predictGenre)
+    # np.savetxt('predData.dat', predictData, fmt = '%f')
+    # np.savetxt('predGroup.dat', predictGenre, fmt = '%d')
     # predictData = np.loadtxt('predData.dat', dtype=float)
-    # predictGenre = np.loadtxt('predGroup.dat', dtype=float)
+    # predictGenre = np.loadtxt('predGroup.dat', dtype=int)
 
     result = classifier.predict(predictData)
 

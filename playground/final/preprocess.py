@@ -1,8 +1,8 @@
 import os
 from shutil import copyfile
 
-NNMD_path = "../../data/No Nonsense Music Dataset/"
-output_path = "../../data/NNMD_out/"
+NNMD_path = "/home/nicklas/KTH/kexdata/shared/newSet/"
+output_path = NNMD_path + "NNMD_out/"
 output_test_folder_name = "classify"
 output_training_folder_name = "training"
 

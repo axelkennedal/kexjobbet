@@ -4,7 +4,7 @@ import numpy as np
 
 duration = 30
 offset = 0
-nMfcc = 12
+nMfcc = 20
 sampleRate = 44100
 
 ## Extract the genre from the metadata of the specified file.
@@ -39,9 +39,6 @@ def get_feature_vector(filename):
 
     for freq in range(0, len(mfccs[0])):
         featureVector.append(np.mean([mfccs[k][freq] for k in range(0, nMfcc)]))
-#    for mfcc in mfccs:
-#        tmplist = list(mfcc)
-#        featureVector.append(sum(tmplist) / len(tmplist))
 
     return list(np.array(featureVector) / np.linalg.norm(featureVector))
 
@@ -56,8 +53,11 @@ def get_feature_vector(filename):
 def extract_feature_and_class(filenames):
     songHashGenreName = {}
     trainingData = { 'data': [], 'group': [] }
+    nFile = 1
 
     for filename in filenames:
+        print("Processing file {} of {}...".format(nFile, len(filenames)))
+        nFile += 1
         fileGenre = get_genre(filename)
         featureVector = get_feature_vector(filename)
 
@@ -65,7 +65,8 @@ def extract_feature_and_class(filenames):
             continue
 
         ## Discard data where the dimension of the feature vector does not match the dimension
-        ## of the other feature vectors.
+        ## of the other feature vectors. This should never happen since supposing that the 
+        ## sample rate of the data, and the number of samples available matches.
         if (trainingData['data'] != []):
             if(len(trainingData['data'][-1]) != len(featureVector)):
                 continue
