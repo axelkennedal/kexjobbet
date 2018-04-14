@@ -8,32 +8,33 @@ import copy
 
 dataBaseDir = '../../../data/NNMD_out/'
 printCFMatrix = False
+nJobs = 1
 
 trainingData = { 'data': [], 'group': [] }
 songHashGenreName = {}
 
-
 ## Main function
 def main():
     global songHashGenreName
+    global nJobs
 
     process_args()
     print(dataBaseDir)
 
     print('Extracting features...')
     ## Generate sample, feature vector matrix (training data)
-    # filenames = glob.glob(dataBaseDir + 'training/*.mp3')
+    filenames = glob.glob(dataBaseDir + 'training/*.mp3')
 
-    # trainingData, songHashGenreName = extract_feature_and_class(filenames)
-    # data = np.array(trainingData['data'])
-    # group = np.array(trainingData['group'])
+    (trainingData, songHashGenreName) = generate_feature_vector(filenames, nJobs)
+    data = np.array(trainingData['data'])
+    group = np.array(trainingData['group'])
 
     # np.save('songHashGenreName', songHashGenreName);
     # np.savetxt('mfccdata.dat', data, fmt = '%f')
     # np.savetxt('gdata.dat', group, fmt = '%d')
-    data = np.loadtxt('mfccdata.dat', dtype=float)
-    group = np.loadtxt('gdata.dat', dtype=int)
-    songHashGenreName = np.load('songHashGenreName.npy').item()
+    # data = np.loadtxt('mfccdata.dat', dtype=float)
+    # group = np.loadtxt('gdata.dat', dtype=int)
+    # songHashGenreName = np.load('songHashGenreName.npy').item()
 
     print('\nTraining classifier...')
     # Generate classifier model
@@ -43,15 +44,15 @@ def main():
 
     # Get predict data
     print('Classifying data.')
-    # filenames = glob.glob(dataBaseDir + 'classify/*.mp3')
-    # predictDataDict, _ = extract_feature_and_class(filenames)
-    # predictGenre = np.array(predictDataDict['group'])
-    # predictData = np.array(predictDataDict['data'])
+    filenames = glob.glob(dataBaseDir + 'classify/*.mp3')
+    (predictDataDict, _) = generate_feature_vector(filenames, nJobs)
+    predictGenre = np.array(predictDataDict['group'])
+    predictData = np.array(predictDataDict['data'])
 
     # np.savetxt('predData.dat', predictData, fmt = '%f')
     # np.savetxt('predGroup.dat', predictGenre, fmt = '%d')
-    predictData = np.loadtxt('predData.dat', dtype=float)
-    predictGenre = np.loadtxt('predGroup.dat', dtype=int)
+    # predictData = np.loadtxt('predData.dat', dtype=float)
+    # predictGenre = np.loadtxt('predGroup.dat', dtype=int)
 
     result = classifier.predict(predictData)
 
@@ -79,13 +80,15 @@ def print_help():
     print("    -h                           - prints this help text.")
     print("    -d, --dir                    - data base directory")
     print("    -p, --print-confusion-matrix - prints the confusion matrix")
+    print("    -j, --jobs                   - number of jobs to run in parallel")
 
 def process_args():
     global dataBaseDir
     global printCFMatrix
+    global nJobs
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hd:p", ["dir=", "print-confusion-matrix"])
+        opts, args = getopt.getopt(sys.argv[1:], "hd:pj:", ["jobs=", "dir=", "print-confusion-matrix"])
     except getopt.GetoptError:
         print_help()
         sys.exit(2)
@@ -118,6 +121,13 @@ def process_args():
 
         elif opt in ("-p", "--print-confusion-matrix"):
             printCFMatrix = True
+
+        elif opt in ("-j", "--jobs"):
+            if int(arg) <= 0:
+                print("Number of jobs must be greater than 0")
+                sys.exit(1)
+
+            nJobs = int(arg)
 
         else:
             print("Unknown argument " + opt)

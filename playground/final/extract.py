@@ -1,6 +1,7 @@
 import mutagen
 import librosa
 import numpy as np
+from multiprocessing import Pool
 
 duration = 30
 offset = 0
@@ -78,4 +79,40 @@ def extract_feature_and_class(filenames):
         trainingData['data'].append(featureVector)
         trainingData['group'].append(genreHash)
 
-    return trainingData, songHashGenreName
+    return (trainingData, songHashGenreName)
+
+## Split data and create processes.
+## Input:
+##      filenames - names of files to process
+##      jobs - Number of jobs to run in parallel
+##
+## Output:
+##      ({data, groups}, songHashDict)
+def generate_feature_vector(filenames, jobs):
+    if jobs > len(filenames):
+        jobs = len(filenames)
+
+    args = []
+    chunkSize = int(len(filenames) / jobs)
+    for i in range(1, jobs):
+        args.append(filenames[(i-1)*chunkSize:i*chunkSize])
+
+    args.append(filenames[(jobs-1)*chunkSize:])
+
+    if len(filenames) == 90:
+        with open('dump', 'w') as f:
+            for s in args:
+                for v in s:
+                    f.write(v)
+
+    with Pool(processes = jobs) as pool:
+        data = pool.map(extract_feature_and_class, args)
+
+        resData = { 'data': [], 'group': [] }
+        resGenre = { }
+        for (d, genreHash) in data:
+            resGenre.update(genreHash)
+            resData['data'] +=d['data']
+            resData['group'] += d['group']
+
+        return (resData, resGenre)
