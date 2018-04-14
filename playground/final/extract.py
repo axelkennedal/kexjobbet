@@ -1,12 +1,14 @@
 import mutagen
 import librosa
 import numpy as np
-from multiprocessing import Pool
+from multiprocessing import Pool, Value
 
 duration = 30
 offset = 0
 nMfcc = 20
 sampleRate = 44100
+
+counter = None
 
 ## Extract the genre from the metadata of the specified file.
 ## Input:
@@ -54,11 +56,8 @@ def get_feature_vector(filename):
 def extract_feature_and_class(filenames):
     songHashGenreName = {}
     trainingData = { 'data': [], 'group': [] }
-    nFile = 1
 
     for filename in filenames:
-        print("Processing file {} of {}...".format(nFile, len(filenames)))
-        nFile += 1
         fileGenre = get_genre(filename)
         featureVector = get_feature_vector(filename)
 
@@ -78,6 +77,9 @@ def extract_feature_and_class(filenames):
 
         trainingData['data'].append(featureVector)
         trainingData['group'].append(genreHash)
+        
+        with counter.get_lock():
+            counter.value += 1
 
     return (trainingData, songHashGenreName)
 
@@ -89,6 +91,9 @@ def extract_feature_and_class(filenames):
 ## Output:
 ##      ({data, groups}, songHashDict)
 def generate_feature_vector(filenames, jobs):
+    global counter
+    counter = Value('i', 0)
+
     if jobs > len(filenames):
         jobs = len(filenames)
 
@@ -99,14 +104,17 @@ def generate_feature_vector(filenames, jobs):
 
     args.append(filenames[(jobs-1)*chunkSize:])
 
-    if len(filenames) == 90:
-        with open('dump', 'w') as f:
-            for s in args:
-                for v in s:
-                    f.write(v)
-
     with Pool(processes = jobs) as pool:
-        data = pool.map(extract_feature_and_class, args)
+        data = pool.map_async(extract_feature_and_class, args)
+
+        while not data.ready():
+            print_progress(counter.value, len(filenames), "")
+            data.wait(1)
+
+        data = data.get()
+        pool.close()
+
+        print_progress(counter.value, len(filenames), "\n\r")
 
         resData = { 'data': [], 'group': [] }
         resGenre = { }
@@ -116,3 +124,18 @@ def generate_feature_vector(filenames, jobs):
             resData['group'] += d['group']
 
         return (resData, resGenre)
+
+def print_progress(cur, tot, end):
+    nHash = 50
+    step = int(tot / nHash)
+    
+    pgText = "\rProgress: ["
+    for i in range(1, nHash + 1):
+        if cur >= step*i:
+            pgText += "#"
+        else:
+            pgText += " "
+
+    pgText += "] ({}/{})"
+    print(pgText.format(cur, tot), end=end)
+
