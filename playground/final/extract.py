@@ -125,13 +125,18 @@ def generate_feature_vector(filenames, jobs):
 
         return (resData, resGenre)
 
+## Prints a progress bar
+## Input:
+##      cur - current file
+##      tot - total number of files
+##      end - end string
 def print_progress(cur, tot, end):
     nHash = 50
-    step = int(tot / nHash)
+    step = tot / nHash
     
     pgText = "\rProgress: ["
     for i in range(1, nHash + 1):
-        if cur >= step*i:
+        if cur >= int(step*i):
             pgText += "#"
         else:
             pgText += " "

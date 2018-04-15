@@ -38,7 +38,7 @@ def main():
 
     print('\nTraining classifier...')
     # Generate classifier model
-    classifier = svm.SVC(kernel = 'rbf', gamma = 1, C = 3, tol = 0.00001)
+    classifier = svm.SVC(kernel = 'rbf', gamma = 3, C = 1, tol = 0.00001)
     classifier.fit(data, group)
     print('Score: %f' % classifier.score(data, group))
 
@@ -158,7 +158,7 @@ def print_confusion_matrix(classRes, expected):
         print("\n{:>12} ".format(songHashGenreName[actual]), end="")
 
         for pred in songHashGenreName:
-            print("{:>12.3}% ".format(100*mat[actual][pred] / len(classRes)), end="")
+            print("{:>12} ".format(mat[actual][pred]), end="")
 
     print("")
 
