@@ -125,7 +125,7 @@ def CI_interval(filenames, durations, nIter, mode1, mode2):
 
         # Calculate degrees of freedom (Welch's test)
         tj = (t1/len(results1) + t2/len(results2))**2
-        nm = (t1**2/((len(results1)**2) * (len(results1)-1))) + (t2**2/((len(results2)**2) * (len/results2)-1))
+        nm = (t1**2/((len(results1)**2) * (len(results1)-1))) + (t2**2/((len(results2)**2) * (len(results2)-1)))
         tX = stats.t.ppf(0.9995, tj/nm)
 
         v = tX/np.sqrt(len(results1 + results2))*tDiff

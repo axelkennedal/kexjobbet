@@ -1,4 +1,4 @@
-from enum import Enum, unique, auto
+from enum import Enum, unique
 import mutagen
 from mutagen.mp3 import MP3
 import librosa
@@ -34,23 +34,27 @@ def get_genre(filename):
 ##      float - song length in seconds
 def get_length(filename):
     audio = MP3(filename)
-    return audio.info.length
+    return int(audio.info.length)
 
 ## An enum for choosing what kind of offset to use for feature extraction
 @unique
 class OffsetMode(Enum):
-    START = auto()
-    MIDDLE = auto()
-    END = auto()
-    RANDOM = auto()
+    START = 1
+    MIDDLE = 2
+    END = 3
+    RANDOM = 4
 
 def get_offset_for_mode(filename, mode):
     if mode == OffsetMode.START:
         return 0
     elif mode == OffsetMode.MIDDLE:
-        return (get_length(filename) / 2) - (duration / 2)
+        return int((get_length(filename) / 2) - (duration / 2))
     elif mode == OffsetMode.END:
-        return get_length(filename) - duration
+        offset = int(get_length(filename) - duration - 1)
+        if offset < 0:
+            offset = 0
+
+        return offset
     elif mode == OffsetMode.RANDOM:
         return random.uniform(0, get_length(filename) - duration)
     else:
